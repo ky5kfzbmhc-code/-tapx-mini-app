@@ -1,0 +1,385 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>TAPX</title>
+
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;
+  min-height:100vh;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  color:white;
+  background:linear-gradient(160deg,#101d3d,#070b15 65%);
+}
+.container{
+  max-width:520px;
+  margin:auto;
+  padding:18px 16px 100px;
+}
+.top{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+.logo{
+  font-size:26px;
+  font-weight:900;
+  letter-spacing:2px;
+}
+.day{
+  background:#18294b;
+  border:1px solid #304873;
+  padding:7px 12px;
+  border-radius:15px;
+  font-size:12px;
+}
+.card{
+  margin-top:16px;
+  padding:20px;
+  border-radius:24px;
+  background:#111d34;
+  border:1px solid #263b61;
+}
+.balance{text-align:center}
+.small{
+  color:#8da3ca;
+  font-size:12px;
+}
+.amount{
+  font-size:42px;
+  font-weight:900;
+  margin:4px 0;
+}
+.unit{
+  color:#7890ba;
+  font-size:12px;
+}
+.energy{
+  margin-top:20px;
+  display:flex;
+  justify-content:space-between;
+  font-size:13px;
+  color:#aebddd;
+}
+.bar{
+  height:9px;
+  margin-top:8px;
+  background:#080d18;
+  border-radius:10px;
+  overflow:hidden;
+}
+.bar span{
+  display:block;
+  height:100%;
+  width:100%;
+  background:#5b8cff;
+}
+.tap{
+  width:190px;
+  height:190px;
+  margin:25px auto 10px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:50%;
+  background:radial-gradient(circle,#527eff,#1d3470);
+  border:8px solid #304c87;
+  box-shadow:0 0 50px #315cc655;
+  font-size:28px;
+  font-weight:900;
+  user-select:none;
+}
+.tap:active{transform:scale(.94)}
+.hint{
+  text-align:center;
+  color:#7287ad;
+  font-size:12px;
+}
+.grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+}
+.box{
+  padding:15px;
+  background:#0d1729;
+  border:1px solid #243756;
+  border-radius:17px;
+}
+.box b{
+  display:block;
+  margin-bottom:5px;
+}
+.box span{
+  color:#7f94b9;
+  font-size:12px;
+}
+.task{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+button{
+  border:0;
+  border-radius:12px;
+  padding:10px 15px;
+  background:#5b8cff;
+  color:white;
+  font-weight:700;
+}
+.nav{
+  position:fixed;
+  bottom:0;
+  left:0;
+  right:0;
+  max-width:520px;
+  margin:auto;
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  background:#070c17;
+  border-top:1px solid #263756;
+  padding:9px 8px;
+}
+.nav button{
+  background:transparent;
+  color:#8094b7;
+  font-size:11px;
+}
+.nav button.active{color:white}
+#toast{
+  position:fixed;
+  top:18px;
+  left:50%;
+  transform:translateX(-50%);
+  background:#182746;
+  border:1px solid #3b5684;
+  padding:10px 15px;
+  border-radius:12px;
+  opacity:0;
+  transition:.2s;
+}
+</style>
+</head>
+
+<body>
+
+<div id="toast"></div>
+
+<div class="container">
+
+  <div class="top">
+    <div class="logo">TAPX</div>
+    <div class="day" id="day">GÜN 1 / 15</div>
+  </div>
+
+  <div class="card balance">
+
+    <div class="small">BAKİYEN</div>
+
+    <div class="amount" id="balance">0</div>
+
+    <div class="unit">TAPX POINTS</div>
+
+    <div class="energy">
+      <span>⚡ Enerji</span>
+      <span id="energyText">1000 / 1000</span>
+    </div>
+
+    <div class="bar">
+      <span id="energyBar"></span>
+    </div>
+
+    <div class="tap" id="tap">TAP</div>
+
+    <div class="hint">
+      Dokun ve puan kazan
+    </div>
+
+  </div>
+
+  <div class="card">
+
+    <h3>🎁 Günlük Görev</h3>
+
+    <div class="box task">
+
+      <div>
+        <b>Günlük ödül</b>
+        <span>Her gün giriş yap</span>
+      </div>
+
+      <button id="daily">+500</button>
+
+    </div>
+
+  </div>
+
+  <div class="card">
+
+    <h3>🚀 İlerleme</h3>
+
+    <div class="grid">
+
+      <div class="box">
+        <b id="progress">7%</b>
+        <span>15 günlük yol</span>
+      </div>
+
+      <div class="box">
+        <b>👥 0</b>
+        <span>Arkadaş</span>
+      </div>
+
+      <div class="box">
+        <b>🏆 #—</b>
+        <span>Sıralama</span>
+      </div>
+
+      <div class="box">
+        <b>🔒 Kapalı</b>
+        <span>Çekim</span>
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+<div class="nav">
+
+<button class="active">
+🏠<br>Ana Sayfa
+</button>
+
+<button onclick="toast('Görevler yakında')">
+📋<br>Görevler
+</button>
+
+<button onclick="toast('Arkadaş davet sistemi yakında')">
+👥<br>Arkadaşlar
+</button>
+
+<button onclick="toast('Cüzdan bölümü yakında')">
+💰<br>Cüzdan
+</button>
+
+</div>
+
+<script>
+
+const tg = window.Telegram?.WebApp;
+
+if(tg){
+  tg.ready();
+  tg.expand();
+}
+
+const KEY="tapx_demo_v1";
+
+let state=JSON.parse(
+  localStorage.getItem(KEY) ||
+  '{"balance":0,"energy":1000,"day":1,"dailyClaimed":false}'
+);
+
+function save(){
+  localStorage.setItem(KEY,JSON.stringify(state));
+  render();
+}
+
+function render(){
+
+  document.getElementById("balance").textContent=
+    state.balance.toLocaleString("tr-TR");
+
+  document.getElementById("energyText").textContent=
+    `${state.energy} / 1000`;
+
+  document.getElementById("energyBar").style.width=
+    `${state.energy/10}%`;
+
+  document.getElementById("day").textContent=
+    `GÜN ${state.day} / 15`;
+
+  document.getElementById("progress").textContent=
+    `${Math.round((state.day/15)*100)}%`;
+
+  const daily=document.getElementById("daily");
+
+  daily.disabled=state.dailyClaimed;
+
+  daily.textContent=
+    state.dailyClaimed ? "Alındı" : "+500";
+}
+
+function tap(){
+
+  if(state.energy<=0){
+    toast("Enerjin bitti");
+    return;
+  }
+
+  state.balance+=1;
+  state.energy-=1;
+
+  save();
+}
+
+function claimDaily(){
+
+  if(state.dailyClaimed)return;
+
+  state.balance+=500;
+  state.dailyClaimed=true;
+
+  save();
+
+  toast("+500 TAPX");
+}
+
+function toast(message){
+
+  const t=document.getElementById("toast");
+
+  t.textContent=message;
+  t.style.opacity="1";
+
+  clearTimeout(window.toastTimer);
+
+  window.toastTimer=setTimeout(()=>{
+    t.style.opacity="0";
+  },1300);
+}
+
+document
+.getElementById("tap")
+.addEventListener("click",tap);
+
+document
+.getElementById("daily")
+.addEventListener("click",claimDaily);
+
+setInterval(()=>{
+
+  if(state.energy<1000){
+
+    state.energy=
+      Math.min(1000,state.energy+1);
+
+    save();
+
+  }
+
+},1000);
+
+render();
+
+</script>
+
+</body>
+</html>
